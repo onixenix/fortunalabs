@@ -1,0 +1,66 @@
+//@version=6
+indicator("ApexTrend", overlay=true, max_labels_count=500)
+
+// ─── Inputs ──────────────────────────────────────────────────
+emaLongLen   = input.int(236, "Trend EMA", minval=100, maxval=300)
+emaMidLen    = input.int(38,  "Mid EMA", minval=20, maxval=80)
+emaFastLen   = input.int(10,  "Fast EMA", minval=5, maxval=30)
+emaExitLen   = input.int(13,  "Exit EMA", minval=5, maxval=50)
+breakoutLen  = input.int(35,  "Breakout Lookback", minval=10, maxval=50)
+volMult      = input.float(0.8, "Volume Multiplier", minval=0.5, maxval=2.0, step=0.1)
+slopeLookback = input.int(5,  "Slope Lookback", minval=3, maxval=20)
+
+// ─── Show/Hide ───────────────────────────────────────────────
+showEmaLong  = input.bool(true, "Show Trend EMA (236)")
+showEmaMid   = input.bool(true, "Show Mid EMA (38)")
+showEmaFast  = input.bool(true, "Show Fast EMA (10)")
+showEmaExit  = input.bool(true, "Show Exit EMA (13)")
+showBreakout = input.bool(true, "Show Breakout Level")
+showSignals  = input.bool(true, "Show Entry/Exit Signals")
+showBg       = input.bool(true, "Show Background Shading")
+
+// ─── Calculations ────────────────────────────────────────────
+emaLong  = ta.ema(close, emaLongLen)
+emaMid   = ta.ema(close, emaMidLen)
+emaFast  = ta.ema(close, emaFastLen)
+emaExit  = ta.ema(close, emaExitLen)
+volAvg   = ta.sma(volume, 20)
+hh       = ta.highest(high, breakoutLen)[1]
+emaSlope = emaLong - emaLong[slopeLookback]
+
+// ─── Entry Conditions ────────────────────────────────────────
+entryCondition = close > emaLong and emaSlope > 0 and emaFast > emaMid and close > hh and volume > (volAvg * volMult) and volume > 0
+
+// ─── Exit Condition ──────────────────────────────────────────
+exitCondition = close < emaExit
+
+// ─── Track Position State ────────────────────────────────────
+var bool inTrade = false
+
+enterSignal = entryCondition and not inTrade
+exitSignal  = exitCondition and inTrade
+
+if enterSignal
+    inTrade := true
+if exitSignal
+    inTrade := false
+
+// ─── Plot EMAs ───────────────────────────────────────────────
+plot(showEmaLong ? emaLong : na, "EMA 236", color=color.new(#7F77DD, 30), linewidth=3)
+plot(showEmaMid  ? emaMid  : na, "EMA 38",  color=color.new(#0F6E56, 30), linewidth=2)
+plot(showEmaFast ? emaFast : na, "EMA 10",  color=color.new(#1D9E75, 30), linewidth=1)
+plot(showEmaExit ? emaExit : na, "EMA 13",  color=color.new(#BA7517, 30), linewidth=1, style=plot.style_line)
+
+// ─── Breakout Level ──────────────────────────────────────────
+plot(showBreakout ? hh : na, "35-bar High", color=color.new(#D85A30, 50), linewidth=1, style=plot.style_stepline)
+
+// ─── Entry/Exit Signals ──────────────────────────────────────
+plotshape(showSignals and enterSignal, "Entry", shape.triangleup,   location.belowbar, color.new(#1D9E75, 0), size=size.small)
+plotshape(showSignals and exitSignal,  "Exit",  shape.triangledown, location.abovebar, color.new(#E24B4A, 0), size=size.small)
+
+// ─── Background Shading (in trade) ──────────────────────────
+bgcolor(showBg and inTrade ? color.new(#1D9E75, 92) : na)
+
+// ─── Alerts ──────────────────────────────────────────────────
+alertcondition(enterSignal, "ApexTrend Entry", "ApexTrend: Entry signal on {{ticker}} {{interval}}")
+alertcondition(exitSignal,  "ApexTrend Exit",  "ApexTrend: Exit signal on {{ticker}} {{interval}}")

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fortuna Labs — ApexTrend Strategy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8D48B;
+  --gold-dim: #8B7333;
+  --bg-deep: #0A0B0D;
+  --bg-card: #111318;
+  --bg-card-hover: #161920;
+  --text-primary: #E8E6E1;
+  --text-secondary: #8A8880;
+  --text-dim: #5A5850;
+  --green: #2ECC71;
+  --red: #E74C3C;
+  --border: rgba(201,168,76,0.12);
+  --border-hover: rgba(201,168,76,0.25);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.serif { font-family: 'Cormorant Garamond', serif; }
+
+a { color: var(--gold); text-decoration: none; }
+a:hover { color: var(--gold-light); }
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Layout */
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+/* Hero */
+.hero {
+  padding: 120px 0 80px;
+  text-align: center;
+  position: relative;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.brand {
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(48px, 8vw, 80px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--gold);
+}
+.hero-sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 540px;
+  margin: 0 auto 48px;
+  line-height: 1.6;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 80px;
+}
+.stat {
+  background: var(--bg-card);
+  padding: 28px 16px;
+  text-align: center;
+}
+.stat-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 500;
+  color: var(--gold);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.stat-value.green { color: var(--green); }
+.stat-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* Sections */
+section { padding: 60px 0; }
+.section-label {
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 400;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+.section-desc {
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-bottom: 40px;
+}
+
+/* How it works cards */
+.flow {
+  display: grid;
+  gap: 16px;
+}
+.flow-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 20px;
+  align-items: start;
+  transition: border-color 0.3s, background 0.3s;
+}
+.flow-card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
+}
+.flow-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 600;
+}
+.flow-icon.entry { background: rgba(46,204,113,0.1); color: var(--green); }
+.flow-icon.hold { background: rgba(201,168,76,0.1); color: var(--gold); }
+.flow-icon.exit { background: rgba(231,76,60,0.1); color: var(--red); }
+.flow-card h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.flow-card p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Conditions grid */
+.conditions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+.condition {
+  background: rgba(201,168,76,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--text-primary);
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.condition .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+/* Performance table */
+.perf-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.perf-table th {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+.perf-table th:not(:first-child) { text-align: right; }
+.perf-table td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(201,168,76,0.06);
+  font-size: 15px;
+}
+.perf-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.perf-table tr:hover td { background: var(--bg-card-hover); }
+.perf-table .positive { color: var(--green); }
+.perf-table .negative { color: var(--red); }
+
+/* Download section */
+.download-section {
+  padding: 80px 0;
+  text-align: center;
+  position: relative;
+}
+.download-section::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 300px;
+  background: radial-gradient(ellipse, rgba(201,168,76,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+.download-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 640px;
+  margin: 40px auto 0;
+}
+.dl-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.dl-card:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-2px);
+}
+.dl-card h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.dl-card p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.btn {
+  display: inline-block;
+  padding: 10px 28px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+  background: transparent;
+}
+.btn:hover {
+  background: rgba(201,168,76,0.08);
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+
+/* Setup steps */
+.steps {
+  display: grid;
+  gap: 16px;
+  margin-top: 48px;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.step {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 16px;
+  align-items: start;
+  text-align: left;
+}
+.step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.step p { font-size: 15px; color: var(--text-secondary); }
+.step code {
+  display: block;
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(201,168,76,0.08);
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* Disclaimer */
+.disclaimer {
+  padding: 48px 0 80px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+}
+
+/* Divider */
+.divider {
+  width: 48px;
+  height: 1px;
+  background: var(--gold-dim);
+  margin: 0 auto 48px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .conditions { grid-template-columns: 1fr; }
+  .download-grid { grid-template-columns: 1fr; }
+  .flow-card { grid-template-columns: 1fr; }
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero, section, .download-section {
+  animation: fadeUp 0.8s ease-out both;
+}
+section:nth-child(2) { animation-delay: 0.1s; }
+section:nth-child(3) { animation-delay: 0.2s; }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="container">
+    <div class="brand">Fortuna Labs</div>
+    <h1>Apex<em>Trend</em></h1>
+    <p class="hero-sub">A patient, trend-following breakout strategy for crypto futures. Built on FreqTrade, optimised by machine learning, verified by backtesting.</p>
+    
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-value green">+37.4%</div>
+        <div class="stat-label">Total return</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">5.5%</div>
+        <div class="stat-label">Max drawdown</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">1.63</div>
+        <div class="stat-label">Sharpe ratio</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">3.32</div>
+        <div class="stat-label">Profit factor</div>
+      </div>
+    </div>
+    <p style="text-align:center; font-size:13px; color:var(--text-dim); margin-top:14px;">Backtested Jun 2025 – Mar 2026 (9.5 months) · Market fell 29% over this period</p>
+  </div>
+</div>
+
+<!-- How it works -->
+<section>
+  <div class="container">
+    <div class="section-label">Strategy</div>
+    <h2 class="section-title">How ApexTrend works</h2>
+    <p class="section-desc">ApexTrend waits for the perfect alignment of trend, momentum, and breakout — then strikes. It's patient, selective, and exits fast when conditions change.</p>
+
+    <div class="flow">
+      <div class="flow-card">
+        <div class="flow-icon entry">1</div>
+        <div>
+          <h3>Entry — wait for the apex</h3>
+          <p>All four conditions must align before entering a long position. No signal fires until trend, momentum, breakout, and volume all agree.</p>
+          <div class="conditions">
+            <div class="condition"><span class="dot"></span>Price above rising 236 EMA</div>
+            <div class="condition"><span class="dot"></span>EMA 10 above EMA 38</div>
+            <div class="condition"><span class="dot"></span>Price breaks 35-bar high</div>
+            <div class="condition"><span class="dot"></span>Volume above 0.8× average</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-icon hold">2</div>
+        <div>
+          <h3>Hold — ride the trend</h3>
+          <p>Average hold time is roughly 2 days. The wide ROI target (54.4%) and stoploss (-26.6%) let trades breathe through normal volatility. Most exits come from the signal, not the safety nets.</p>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-icon exit">3</div>
+        <div>
+          <h3>Exit — fast when momentum fades</h3>
+          <p>When price closes below the 13 EMA on a 4-hour candle, the trade is closed. This is a fast, responsive exit that locks in gains before a pullback erases them.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Performance -->
+<section>
+  <div class="container">
+    <div class="section-label">Backtest results</div>
+    <h2 class="section-title">June 2025 — March 2026</h2>
+    <p class="section-desc">Tested on Binance futures (isolated margin) with a 1,000 USDT dry-run wallet. The market fell 29% over this period.</p>
+
+    <table class="perf-table">
+      <thead>
+        <tr>
+          <th>Pair</th>
+          <th>Trades</th>
+          <th>Win rate</th>
+          <th>Profit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SOL / USDT</td>
+          <td>13</td>
+          <td>61.5%</td>
+          <td class="positive">+133.03 USDT</td>
+        </tr>
+        <tr>
+          <td>ETH / USDT</td>
+          <td>15</td>
+          <td>66.7%</td>
+          <td class="positive">+131.55 USDT</td>
+        </tr>
+        <tr>
+          <td>XRP / USDT</td>
+          <td>10</td>
+          <td>50.0%</td>
+          <td class="positive">+96.29 USDT</td>
+        </tr>
+        <tr>
+          <td>BTC / USDT</td>
+          <td>16</td>
+          <td>37.5%</td>
+          <td class="positive">+12.75 USDT</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr style="border-top: 1px solid var(--border);">
+          <td style="font-weight:500;">Total</td>
+          <td style="font-weight:500;">54</td>
+          <td style="font-weight:500;">53.7%</td>
+          <td class="positive" style="font-weight:500;">+373.61 USDT</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</section>
+
+<!-- Key metrics -->
+<section>
+  <div class="container">
+    <div class="section-label">Metrics</div>
+    <h2 class="section-title">By the numbers</h2>
+    <div class="stats-bar" style="margin-bottom:0;">
+      <div class="stat">
+        <div class="stat-value">54</div>
+        <div class="stat-label">Total trades</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">5.16</div>
+        <div class="stat-label">Sortino ratio</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">49.7%</div>
+        <div class="stat-label">CAGR</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">~2d</div>
+        <div class="stat-label">Avg hold time</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Download -->
+<div class="download-section">
+  <div class="container">
+    <div class="divider"></div>
+    <div class="section-label">Get started</div>
+    <h2 class="section-title">Download ApexTrend</h2>
+    <p class="section-desc" style="margin: 0 auto 40px; text-align:center;">Available as a FreqTrade strategy and a TradingView indicator. Both are free and open source.</p>
+
+    <div class="download-grid">
+      <div class="dl-card">
+        <h3>FreqTrade Strategy</h3>
+        <p>Complete package with strategy file, config, and documentation.</p>
+        <a href="ApexTrend.zip" class="btn">Download .zip</a>
+      </div>
+      <div class="dl-card">
+        <h3>TradingView Indicator</h3>
+        <p>Pine Script v6 with EMAs, signals, alerts, and background shading.</p>
+        <a href="ApexTrend_TradingView.txt" class="btn">Download .txt</a>
+      </div>
+    </div>
+
+    <div class="steps">
+      <h3 style="text-align:center; margin-bottom:8px; font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:400; grid-column:1/-1;">Quick setup</h3>
+      
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <p>Copy <strong>ApexTrend.py</strong> into your FreqTrade strategies folder.</p>
+          <code>user_data/strategies/ApexTrend.py</code>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <p>Copy <strong>config.json</strong> into your FreqTrade user_data folder (back up your existing config first).</p>
+          <code>user_data/config.json</code>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <p>Download 4h candle data and run a backtest to verify.</p>
+          <code>freqtrade download-data --config user_data/config.json --timeframe 4h --days 290
+freqtrade backtesting --config user_data/config.json --strategy ApexTrend</code>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <p>Start dry-run trading (paper trading, no real money).</p>
+          <code>freqtrade trade --config user_data/config.json --strategy ApexTrend</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Disclaimer -->
+<div class="container">
+  <div class="disclaimer">
+    <p><strong>Disclaimer</strong> — ApexTrend is provided for educational and informational purposes only. Past backtest performance does not guarantee future results. Cryptocurrency trading carries significant risk. Always use dry-run mode first and never trade with money you can't afford to lose. Parameters were optimised on historical data (Jun 2025 – Mar 2026) and may not perform identically in future market conditions.</p>
+    <p style="margin-top:16px;">Built by <strong>Fortuna Labs</strong></p>
+  </div>
+</div>
+
+</body>
+</html>
