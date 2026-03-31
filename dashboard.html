@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fortuna Labs — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0A0A12;
+  --bg-card: #111318;
+  --bg-card-hover: #161920;
+  --gold: #C8B060;
+  --gold-light: #D4A840;
+  --gold-dim: #9A8A50;
+  --gold-glow: rgba(200, 176, 96, 0.10);
+  --green: #34d399;
+  --red: #f87171;
+  --text: #E8E4D8;
+  --text-dim: #8A8678;
+  --text-muted: #5A5850;
+  --border: rgba(200, 176, 96, 0.12);
+  --border-hover: rgba(200, 176, 96, 0.25);
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'DM Sans', -apple-system, sans-serif;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border);
+}
+.topbar-brand {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 6px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.topbar-brand span { 
+  font-size: 12px; 
+  letter-spacing: 3px; 
+  color: var(--gold-dim); 
+  margin-left: 8px;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.topbar-link {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.topbar-link:hover { color: var(--gold); }
+.logout-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.logout-btn:hover {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+}
+
+/* Main content */
+.main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 80px 40px 120px;
+}
+
+.welcome {
+  text-align: center;
+  margin-bottom: 72px;
+}
+.welcome h1 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 42px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.welcome h1 em { font-style: italic; color: var(--gold); }
+.welcome p {
+  font-size: 15px;
+  color: var(--text-dim);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Strategy cards */
+.strategies-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.strategy-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.3s;
+  overflow: hidden;
+}
+.strategy-card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
+  transform: translateX(4px);
+}
+
+.card-accent {
+  width: 4px;
+  flex-shrink: 0;
+}
+.card-accent.green { background: var(--green); }
+.card-accent.gold { background: var(--gold); }
+
+.card-body {
+  flex: 1;
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.card-info h3 {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+.card-info h3 em { font-style: italic; color: var(--gold); }
+.card-info .card-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.card-info .card-tf {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  margin-top: 8px;
+  background: var(--gold-glow);
+  padding: 3px 10px;
+  border-radius: 2px;
+}
+
+.card-stats {
+  display: flex;
+  gap: 32px;
+  flex-shrink: 0;
+}
+.card-stat {
+  text-align: right;
+}
+.card-stat-value {
+  font-size: 18px;
+  font-weight: 600;
+}
+.card-stat-value.green { color: var(--green); }
+.card-stat-value.gold { color: var(--gold); }
+.card-stat-value.red { color: var(--red); }
+.card-stat-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.card-arrow {
+  color: var(--gold-dim);
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+.strategy-card:hover .card-arrow {
+  transform: translateX(4px);
+  color: var(--gold);
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding-top: 48px;
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+}
+.footer p {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+@media (max-width: 700px) {
+  .card-body { flex-direction: column; align-items: flex-start; }
+  .card-stats { gap: 20px; }
+  .topbar { padding: 16px 20px; }
+  .main { padding: 40px 20px 80px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">Fortuna <span>Labs</span></div>
+  <div class="topbar-right">
+    <a href="https://www.fortunalabs.net" class="topbar-link" target="_blank">Main Site</a>
+    <button class="logout-btn" onclick="sessionStorage.removeItem('fortuna_auth'); window.location.href='index.html';">Logout</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="welcome">
+    <h1>Strategy <em>Vault</em></h1>
+    <p>Your active algorithmic trading strategies. Each one backtested, optimised, and running on Binance futures.</p>
+  </div>
+
+  <div class="strategies-label">Active Strategies</div>
+
+  <a href="apex-scalp-v60.html" class="strategy-card">
+    <div class="card-accent green"></div>
+    <div class="card-body">
+      <div class="card-info">
+        <h3>Apex<em>Scalp</em> v6.0</h3>
+        <div class="card-desc">Donchian channel breakout with 4H trend regime filter</div>
+        <div class="card-tf">1H • Long & Short</div>
+      </div>
+      <div class="card-stats">
+        <div class="card-stat">
+          <div class="card-stat-value green">+112%</div>
+          <div class="card-stat-label">Profit</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-value gold">5.86</div>
+          <div class="card-stat-label">Sharpe</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-value red">11.6%</div>
+          <div class="card-stat-label">Drawdown</div>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </div>
+  </a>
+
+  <a href="apex-scalp-smartstop.html" class="strategy-card">
+    <div class="card-accent green"></div>
+    <div class="card-body">
+      <div class="card-info">
+        <h3>Apex<em>Scalp</em> Smart Stop</h3>
+        <div class="card-desc">Donchian breakout with 3-stage stop management — trail locks profit at 5%</div>
+        <div class="card-tf">1H • Long & Short</div>
+      </div>
+      <div class="card-stats">
+        <div class="card-stat">
+          <div class="card-stat-value green">+60.9%</div>
+          <div class="card-stat-label">Profit</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-value gold">5.23</div>
+          <div class="card-stat-label">Sharpe</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-value red">5.9%</div>
+          <div class="card-stat-label">Drawdown</div>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </div>
+  </a>
+
+  <a href="apex-trend-v2.html" class="strategy-card">
+    <div class="card-accent gold"></div>
+    <div class="card-body">
+      <div class="card-info">
+        <h3>Apex<em>Trend</em> v2</h3>
+        <div class="card-desc">4H trend-following with EMA momentum and breakout entries</div>
+        <div class="card-tf">4H • Long & Short</div>
+      </div>
+      <div class="card-stats">
+        <div class="card-stat">
+          <div class="card-stat-value green">+56.8%</div>
+          <div class="card-stat-label">Profit</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-value gold">2.34</div>
+          <div class="card-stat-label">Sharpe</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-value red">9.8%</div>
+          <div class="card-stat-label">Drawdown</div>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </div>
+  </a>
+
+  <div class="footer">
+    <p>© 2026 Fortuna Labs • Built in Brisbane</p>
+  </div>
+</div>
+
+<script>
+// Auth check
+if (sessionStorage.getItem('fortuna_auth') !== 'true') {
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>
