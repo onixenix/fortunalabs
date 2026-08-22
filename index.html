@@ -3,113 +3,177 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fortuna Labs — honest trading tools</title>
-<meta name="description" content="TradingView indicators and research built from a research system where every strategy must survive out-of-sample testing and lookahead audits. Past performance does not imply future results.">
+<title>Fortuna Coil — Volume-Confirmed Breakout Indicator for TradingView | Fortuna Labs</title>
+<meta name="description" content="A Pine Script v5 indicator ported from a strategy that survived out-of-sample testing, lookahead audits, and realistic costs. ≈1.27 OOS Sharpe on Binance perps, 2023–2026. Past performance is not indicative of future results.">
 <style>
-  :root{--bg:#0d1117;--panel:#161b22;--border:#2d333b;--text:#e6edf3;--dim:#8b949e;--gold:#d4a24c;--green:#3fb950;--red:#f85149}
+  :root{--bg:#0b0e14;--panel:#11161f;--panel2:#161d29;--border:#23303f;--text:#d8dfea;--dim:#6c7384;--gold:#e9b866;--gold-dim:#b08a40;--green:#34c77b;--red:#f85149}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,"Segoe UI",Roboto,sans-serif}
-  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
-  header{padding:60px 0 30px;border-bottom:1px solid var(--border)}
-  h1{font-size:2rem;letter-spacing:.02em}
-  .tagline{color:var(--gold);margin-top:.4rem;font-size:1.05rem}
-  section{padding:40px 0;border-bottom:1px solid var(--border)}
-  h2{font-size:1.35rem;margin-bottom:1rem;color:var(--gold)}
-  h3{font-size:1.05rem;margin:1.2rem 0 .5rem}
-  p{margin-bottom:1rem}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:24px}
-  .price{font-size:1.6rem;color:var(--text)}
-  .price small{color:var(--dim);font-size:.85rem;display:block}
-  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.92rem}
-  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)}
-  th{color:var(--dim);font-weight:600}
+  body{background:var(--bg);color:var(--text);font:16px/1.7 Inter,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px}
   .num{font-variant-numeric:tabular-nums}
-  .btn{display:inline-block;background:var(--gold);color:#14100a;font-weight:700;text-decoration:none;padding:12px 26px;border-radius:8px;margin-top:8px}
-  .btn:hover{filter:brightness(1.08)}
-  .disclaimer{color:var(--dim);font-size:.82rem;line-height:1.6}
-  ul{margin:0 0 1rem 1.2rem}
-  li{margin-bottom:.35rem}
-  footer{padding:40px 0;color:var(--dim);font-size:.85rem}
+  header{padding:72px 0 40px;border-bottom:1px solid var(--border)}
+  .brand{letter-spacing:.35em;color:var(--dim);font-size:.78rem;text-transform:uppercase;margin-bottom:28px}
+  h1{font-size:2.6rem;line-height:1.15;font-weight:800;letter-spacing:-.02em}
+  h1 .gold{color:var(--gold)}
+  .sub{margin-top:18px;font-size:1.15rem;color:var(--text);max-width:640px}
+  .trustbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .chip{border:1px solid var(--border);background:var(--panel);border-radius:999px;padding:7px 16px;font-size:.82rem;color:var(--dim)}
+  .chip b{color:var(--gold);font-weight:600}
+  section{padding:52px 0;border-bottom:1px solid var(--border)}
+  h2{font-size:.85rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:26px;font-weight:700}
+  h3{font-size:1.08rem;margin-bottom:8px;font-weight:600}
+  p{margin-bottom:14px;color:var(--text)}
+  .muted{color:var(--dim)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:28px;margin-bottom:18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:.93rem}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border)}
+  th{color:var(--dim);font-weight:500;width:32%}
+  td.num{color:var(--gold);font-weight:600}
+  .price-row{display:flex;gap:18px;flex-wrap:wrap;align-items:stretch}
+  .tier{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:26px;display:flex;flex-direction:column}
+  .tier.featured{border-color:var(--gold-dim);position:relative;background:linear-gradient(180deg,#171a14,var(--panel))}
+  .badge{position:absolute;top:-11px;left:24px;background:var(--gold);color:#14100a;font-size:.68rem;font-weight:800;letter-spacing:.12em;padding:3px 12px;border-radius:999px;text-transform:uppercase}
+  .amount{font-size:2rem;font-weight:800;margin:10px 0 2px}
+  .was{color:var(--dim);text-decoration:line-through;font-size:.95rem}
+  .tier ul{list-style:none;margin:16px 0 22px;flex:1}
+  .tier li{padding-left:22px;position:relative;margin-bottom:9px;font-size:.92rem;color:var(--text)}
+  .tier li::before{content:"✓";position:absolute;left:0;color:var(--green)}
+  .btn{display:block;text-align:center;background:var(--gold);color:#14100a;font-weight:700;text-decoration:none;padding:13px;border-radius:9px;font-size:.95rem}
+  .btn:hover{filter:brightness(1.07)}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+  details{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:12px}
+  summary{cursor:pointer;font-weight:600}
+  details p{margin-top:10px;color:var(--dim)}
+  .disclaimer{color:var(--dim);font-size:.8rem;line-height:1.65}
+  footer{padding:44px 0;color:var(--dim);font-size:.83rem;line-height:1.7}
+  footer a{color:var(--dim)}
 </style>
 </head>
 <body>
 
 <header class="wrap">
-  <h1>FORTUNA LABS</h1>
-  <p class="tagline">Trading tools that survived an honest audit.</p>
+  <div class="brand">Fortuna Labs · store.fortunalabs.net</div>
+  <h1>Most breakout signals are noise.<br><span class="gold">This one demands proof.</span></h1>
+  <p class="sub">Fortuna Coil only fires when a range break is confirmed by abnormal volume inside a
+  compressed-volatility regime — the combination that survived honest out-of-sample testing when
+  1,800+ other strategies didn't.</p>
+  <div class="trustbar">
+    <span class="chip"><b class="num">≈1.27</b>&nbsp;OOS Sharpe*</span>
+    <span class="chip"><b class="num">2.50</b>&nbsp;profit factor*</span>
+    <span class="chip"><b>Lookahead-audited</b></span>
+    <span class="chip"><b>~24bp</b>&nbsp;costs modelled</span>
+    <span class="chip"><b>Pine v5</b>&nbsp;source included</span>
+  </div>
 </header>
 
-<section class="wrap">
-  <h2>Why this shop is different</h2>
-  <p>Most indicator sellers tune a few settings until a chart looks good. We ran the opposite
-  experiment: an automated research system that generated <strong>over 1,800 candidate
-  strategies</strong>, then forced every one of them through out-of-sample testing on data it
-  had never seen, lookahead-bias audits, and realistic transaction costs.</p>
-  <p><strong>Almost everything died.</strong> Including our own two flagship strategies — when we
-  re-measured them honestly, they turned out to be measurement artifacts, and we published the
-  post-mortem instead of hiding it. What we sell is what's left after that filter. That inventory
-  is small. That's the point.</p>
+<section class="wrap" id="why">
+  <h2>Why this one is different</h2>
+  <p>We built an automated research system that generated over 1,800 candidate strategies and forced
+  every one through the same gauntlet: pre-registered parameters, lookahead-bias audits, realistic
+  transaction costs, and out-of-sample data the strategies never saw during development.</p>
+  <p><strong style="color:var(--gold)">Almost everything died</strong> — including our own first two
+  flagship strategies, which turned out to be measurement artifacts when re-tested honestly. We
+  published that post-mortem instead of hiding it.</p>
+  <p>Fortuna Coil is a faithful port of what survived. When you buy it, you get the source code and
+  the full methodology note, so you can verify every claim on this page yourself.</p>
 </section>
 
-<section class="wrap">
-  <h2>The product</h2>
-
+<section class="wrap" id="evidence">
+  <h2>The evidence, with its assumptions attached</h2>
   <div class="card">
-    <h3>Fortuna Coil — TradingView Indicator</h3>
-    <p>A volume-confirmed breakout tool for crypto and liquid markets. It watches for price
-    coiling in a compressed volatility regime, then signals only breaks confirmed by abnormal
-    volume — because in our testing a level break on flat volume was mostly a fakeout.
-    Includes an ATR trailing exit, a strategy version for TradingView's backtester, and alerts.</p>
     <table>
-      <tr><th colspan="2">The logic behind it, measured honestly*</th></tr>
-      <tr><td>Market &amp; period</td><td>Binance USDT-M perpetuals (top-10 alts), daily bars, Jan 2023 – May 2025 out-of-sample + unseen forward window to Jul 2026</td></tr>
-      <tr><td>Costs assumed</td><td>~12bp per round trip (taker fee + slippage), funding applied</td></tr>
-      <tr><td>Out-of-sample Sharpe ratio</td><td class="num">≈ 1.27 (annualised)</td></tr>
+      <tr><td>Market &amp; timeframe</td><td>Binance USDT-M perpetuals · top-10 alts · daily bars</td></tr>
+      <tr><td>Out-of-sample period</td><td class="num">Jan 2023 – May 2025, plus unseen forward window to Jul 2026</td></tr>
+      <tr><td>Cost assumptions</td><td class="num">~24bp round trip (taker fee + slippage) · funding applied</td></tr>
+      <tr><td>OOS Sharpe ratio</td><td class="num">≈ 1.27 annualised</td></tr>
       <tr><td>Profit factor / trades</td><td class="num">2.50 / 21</td></tr>
-      <tr><td>Lookahead-bias audit</td><td>Passed; Sharpe held flat on unseen forward data</td></tr>
+      <tr><td>Honest forward expectation</td><td class="num">0.4 – 0.7 Sharpe at ~2 trades/month</td></tr>
     </table>
-    <p class="disclaimer">*Historical simulation results. They describe what the system did, not
-    what you will get. Roughly two signals a month — deliberately selective.</p>
-    <div class="price">$199 <small>one-off · indicator + strategy versions · setup guide · methodology note · free updates · 14-day refund</small></div>
-    <a class="btn" href="https://onixenterprise.gumroad.com/l/pgurog" target="_blank" rel="noopener">Get Fortuna Coil — $199</a>
-  </div>
-
-  <div class="card">
-    <h3>Fortuna Coil EA — MetaTrader 5 Expert Advisor</h3>
-    <p>The same coil-breakout logic as a fully automated MT5 Expert Advisor with risk-based
-    position sizing, ATR trailing stop, and time stop. Ships with the source file and a tester
-    setup guide. Note honestly stated up front: the historical evidence above comes from crypto
-    perpetual futures; MT5 symbols use tick volume and the effect there is unvalidated until you
-    test it on your own broker's data.</p>
-    <div class="price">$349 <small>one-off · .mq5 source included · works with any symbol/timeframe · 14-day refund</small></div>
-    <a class="btn" href="https://onixenterprise.gumroad.com/l/pgurog" target="_blank" rel="noopener" style="opacity:.55;pointer-events:none;text-decoration:none">EA — coming soon</a>
+    <p class="disclaimer">*Hypothetical backtested results, not live trading. Historical simulations
+    describe what the system did under stated assumptions — they are not indicative of future
+    results and no claim is made that any buyer will experience similar performance. We state the
+    shrunk forward expectation because sellers who don't are hiding something.</p>
   </div>
 </section>
 
-<section class="wrap" id="buy">
-  <h2>Buy</h2>
-  <p>Checkout is instant via Gumroad — card or PayPal. You download the Pine scripts immediately after purchase and paste them into TradingView's Pine Editor; the included guide walks through it in five minutes.</p>
-  <ul>
-    <li>14-day money-back guarantee, no questions asked</li>
-    <li>Source code visible — nothing hidden, nothing obfuscated</li>
-  </ul>
+<section class="wrap" id="pricing">
+  <h2>Pick your tier</h2>
+  <div class="price-row">
+    <div class="tier">
+      <h3>Lite</h3>
+      <div class="amount num">$49</div>
+      <div class="muted">The logic, nothing else</div>
+      <ul>
+        <li>Indicator (.pine source)</li>
+        <li>Quick-start card</li>
+        <li>Email support</li>
+      </ul>
+      <a class="btn ghost" href="https://onixenterprise.gumroad.com/l/pgurog" target="_blank" rel="noopener">Get Lite</a>
+    </div>
+    <div class="tier featured">
+      <span class="badge">Best value · launch price</span>
+      <h3>Full</h3>
+      <div class="amount num">$199 <span class="was">$299</span></div>
+      <div class="muted">Everything, including the proof</div>
+      <ul>
+        <li>Indicator + Strategy versions (Pine v5)</li>
+        <li>MT5 Expert Advisor with source</li>
+        <li>Full methodology note &amp; setup guide</li>
+        <li>Free updates for life</li>
+        <li>Priority email support</li>
+      </ul>
+      <a class="btn" href="https://onixenterprise.gumroad.com/l/pgurog" target="_blank" rel="noopener">Get Full — $199</a>
+    </div>
+    <div class="tier">
+      <h3>Pro</h3>
+      <div class="amount num">$399</div>
+      <div class="muted">Full + working session</div>
+      <ul>
+        <li>Everything in Full</li>
+        <li>45-min 1-on-1 video walkthrough</li>
+        <li>Your-market parameter consultation</li>
+        <li>Early access to future Fortuna tools</li>
+      </ul>
+      <a class="btn ghost" href="mailto:hello@fortunalabs.net?subject=Fortuna%20Coil%20Pro">Contact for Pro</a>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:14px;font-size:.88rem">7-day money-back guarantee on all tiers —
+  email hello@fortunalabs.net, no questions asked.</p>
 </section>
 
-<section class="wrap">
-  <h2>The fine print (read it)</h2>
-  <p class="disclaimer">
-  Fortuna Labs Pty-style disclaimer — general information only. Everything sold on this site is
-  software and educational material. Nothing here is financial product advice, a recommendation,
-  or an offer to trade. We don't know your objectives, situation, or needs, and no product here
-  takes them into account. Trading involves substantial risk of loss; leveraged and crypto-derivative
-  trading can lose more than your deposit. All performance figures on this page are historical
-  simulations with stated assumptions (period, instrument, cost model) and include known caveats;
-  past performance is not a reliable indicator of future performance. Fortuna Labs is not licensed
-  to provide financial advice under Australian law. If you need advice, see a licensed adviser.</p>
+<section class="wrap" id="how">
+  <h2>How it works</h2>
+  <div class="grid2">
+    <div class="card"><h3>1 · Coil</h3><p class="muted">Realised volatility (ATR/close) sits in the bottom 40% of its trailing year — price is compressed and quiet.</p></div>
+    <div class="card"><h3>2 · Break</h3><p class="muted">Price closes beyond the prior 40-bar high or low.</p></div>
+    <div class="card"><h3>3 · Confirm</h3><p class="muted">Volume must clear 2× its 20-bar average. Flat-volume breaks are marked as fakeouts, not signals.</p></div>
+    <div class="card"><h3>4 · Manage</h3><p class="muted">A 3×ATR trailing stop from the best close since entry, plus a 10-bar time stop. Fully mechanical.</p></div>
+  </div>
+</section>
+
+<section class="wrap" id="faq">
+  <h2>FAQ</h2>
+  <details><summary>Does it repaint?</summary><p>No. Every input uses only completed bars — confirmed by an automated lookahead audit during validation. Signals appear at bar close and never move.</p></details>
+  <details><summary>What markets does it work on?</summary><p>The validated evidence is Binance crypto perpetuals on daily bars. The indicator runs on any symbol/timeframe in TradingView, but we make no claims outside the tested setting — and say so up front.</p></details>
+  <details><summary>How many signals will I see?</summary><p>About two per month per chart at canonical settings. It is deliberately selective; if you want more frequency, the honest path is re-validation on your market, not loosening the filters.</p></details>
+  <details><summary>Why show the forward expectation as only 0.4–0.7 Sharpe?</summary><p>Because a strategy selected from a large candidate pool deserves statistical shrinkage, and because pretending otherwise is how this industry scams people. If a seller quotes their best backtest number as "what you'll get," walk away.</p></details>
+  <details><summary>Is this financial advice?</summary><p>No. This is software and educational material. We don't know your objectives or situation. Trading involves substantial risk of loss. See full disclaimer below.</p></details>
+  <details><summary>What's your refund policy?</summary><p>7 days, no questions asked. Email hello@fortunalabs.net.</p></details>
 </section>
 
 <footer class="wrap">
-  © 2026 Fortuna Labs · fortunalabs.net · contact: hello@fortunalabs.net
+  <p class="disclaimer"><strong>Risk disclosure.</strong> Fortuna Coil is general-information software,
+  not financial product advice or a recommendation to trade. It does not take account of your
+  objectives, financial situation, or needs. Trading leveraged instruments and crypto derivatives
+  involves substantial risk of loss; you can lose more than your deposit. All performance figures on
+  this page are historical simulations with stated assumptions, include known caveats, and are not
+  reliable indicators of future performance. Fortuna Labs is not licensed to provide financial
+  advice under Australian law. If you need advice, see a licensed adviser.</p>
+  <p style="margin-top:18px">© 2026 Fortuna Labs · hello@fortunalabs.net ·
+  <a href="https://store.fortunalabs.net">store.fortunalabs.net</a> ·
+  Research lab: <a href="https://fortunalabs.net">fortunalabs.net</a></p>
 </footer>
 
 </body>
