@@ -1,206 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fortuna Labs — Members</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fortuna Labs — honest trading tools</title>
+<meta name="description" content="TradingView indicators and research built from a research system where every strategy must survive out-of-sample testing and lookahead audits. Past performance does not imply future results.">
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
-  --bg: #0A0A12;
-  --bg-card: #111318;
-  --gold: #C8B060;
-  --gold-light: #D4A840;
-  --gold-dim: #9A8A50;
-  --gold-glow: rgba(200, 176, 96, 0.12);
-  --gold-line: rgba(200, 176, 96, 0.15);
-  --red: #f87171;
-  --text: #E8E4D8;
-  --text-dim: #8A8678;
-  --border: rgba(200, 176, 96, 0.12);
-  --serif: 'Cormorant Garamond', Georgia, serif;
-  --sans: 'DM Sans', -apple-system, sans-serif;
-}
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.glow-ring {
-  position: fixed;
-  border-radius: 50%;
-  border: 1px solid rgba(200, 176, 96, 0.04);
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-.glow-ring:nth-child(1) { width: 500px; height: 500px; }
-.glow-ring:nth-child(2) { width: 700px; height: 700px; border-color: rgba(200, 176, 96, 0.025); }
-.glow-ring:nth-child(3) { width: 900px; height: 900px; border-color: rgba(200, 176, 96, 0.015); }
-
-.login-box {
-  position: relative;
-  z-index: 1;
-  width: 380px;
-  text-align: center;
-}
-.lab-name {
-  font-family: var(--serif);
-  font-weight: 300;
-  font-size: clamp(2rem, 4vw, 2.8rem);
-  letter-spacing: 10px;
-  color: var(--gold);
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.lab-sub {
-  font-size: 11px;
-  letter-spacing: 5px;
-  color: var(--gold-dim);
-  text-transform: uppercase;
-  margin-bottom: 48px;
-}
-.line {
-  width: 50px;
-  height: 1px;
-  background: var(--gold-line);
-  margin: 0 auto 40px;
-}
-.members-label {
-  font-size: 11px;
-  letter-spacing: 4px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  margin-bottom: 32px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-  text-align: left;
-}
-.form-group label {
-  display: block;
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.form-group input {
-  width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 14px;
-  padding: 12px 16px;
-  outline: none;
-  transition: border-color 0.3s;
-}
-.form-group input:focus {
-  border-color: var(--gold-dim);
-}
-.form-group input::placeholder {
-  color: rgba(138, 134, 120, 0.5);
-}
-
-.login-btn {
-  width: 100%;
-  background: var(--gold);
-  color: var(--bg);
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  padding: 14px;
-  border: none;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: all 0.3s;
-}
-.login-btn:hover {
-  background: var(--gold-light);
-  letter-spacing: 5px;
-}
-
-.error-msg {
-  color: var(--red);
-  font-size: 12px;
-  margin-top: 16px;
-  min-height: 18px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.error-msg.show { opacity: 1; }
-
-.back-link {
-  display: inline-block;
-  margin-top: 40px;
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: var(--text-dim);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-.back-link:hover { color: var(--gold); }
+  :root{--bg:#0d1117;--panel:#161b22;--border:#2d333b;--text:#e6edf3;--dim:#8b949e;--gold:#d4a24c;--green:#3fb950;--red:#f85149}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
+  header{padding:60px 0 30px;border-bottom:1px solid var(--border)}
+  h1{font-size:2rem;letter-spacing:.02em}
+  .tagline{color:var(--gold);margin-top:.4rem;font-size:1.05rem}
+  section{padding:40px 0;border-bottom:1px solid var(--border)}
+  h2{font-size:1.35rem;margin-bottom:1rem;color:var(--gold)}
+  h3{font-size:1.05rem;margin:1.2rem 0 .5rem}
+  p{margin-bottom:1rem}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:24px}
+  .price{font-size:1.6rem;color:var(--text)}
+  .price small{color:var(--dim);font-size:.85rem;display:block}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.92rem}
+  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)}
+  th{color:var(--dim);font-weight:600}
+  .num{font-variant-numeric:tabular-nums}
+  .btn{display:inline-block;background:var(--gold);color:#14100a;font-weight:700;text-decoration:none;padding:12px 26px;border-radius:8px;margin-top:8px}
+  .btn:hover{filter:brightness(1.08)}
+  .disclaimer{color:var(--dim);font-size:.82rem;line-height:1.6}
+  ul{margin:0 0 1rem 1.2rem}
+  li{margin-bottom:.35rem}
+  footer{padding:40px 0;color:var(--dim);font-size:.85rem}
 </style>
 </head>
 <body>
-<div class="glow-ring"></div>
-<div class="glow-ring"></div>
-<div class="glow-ring"></div>
 
-<div class="login-box">
-  <div class="lab-name">Fortuna</div>
-  <div class="lab-sub">Labs</div>
-  <div class="line"></div>
-  <div class="members-label">Members Area</div>
+<header class="wrap">
+  <h1>FORTUNA LABS</h1>
+  <p class="tagline">Trading tools that survived an honest audit.</p>
+</header>
 
-  <form id="loginForm">
-    <div class="form-group">
-      <label>Login</label>
-      <input type="text" id="username" placeholder="Enter login" autocomplete="off">
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="Enter password">
-    </div>
-    <button type="submit" class="login-btn">Enter</button>
-  </form>
-  <div class="error-msg" id="errorMsg">Invalid credentials</div>
+<section class="wrap">
+  <h2>Why this shop is different</h2>
+  <p>Most indicator sellers tune a few settings until a chart looks good. We ran the opposite
+  experiment: an automated research system that generated <strong>over 1,800 candidate
+  strategies</strong>, then forced every one of them through out-of-sample testing on data it
+  had never seen, lookahead-bias audits, and realistic transaction costs.</p>
+  <p><strong>Almost everything died.</strong> Including our own two flagship strategies — when we
+  re-measured them honestly, they turned out to be measurement artifacts, and we published the
+  post-mortem instead of hiding it. What we sell is what's left after that filter. That inventory
+  is small. That's the point.</p>
+</section>
 
-  <a href="https://www.fortunalabs.net" class="back-link">← fortunalabs.net</a>
-</div>
+<section class="wrap">
+  <h2>The product</h2>
 
-<script>
-// Check if already authenticated
-if (sessionStorage.getItem('fortuna_auth') === 'true') {
-  window.location.href = 'dashboard.html';
-}
+  <div class="card">
+    <h3>Fortuna Coil — TradingView Indicator</h3>
+    <p>A volume-confirmed breakout tool for crypto and liquid markets. It watches for price
+    coiling in a compressed volatility regime, then signals only breaks confirmed by abnormal
+    volume — because in our testing a level break on flat volume was mostly a fakeout.
+    Includes an ATR trailing exit, a strategy version for TradingView's backtester, and alerts.</p>
+    <table>
+      <tr><th colspan="2">The logic behind it, measured honestly*</th></tr>
+      <tr><td>Market &amp; period</td><td>Binance USDT-M perpetuals (top-10 alts), daily bars, Jan 2023 – May 2025 out-of-sample + unseen forward window to Jul 2026</td></tr>
+      <tr><td>Costs assumed</td><td>~12bp per round trip (taker fee + slippage), funding applied</td></tr>
+      <tr><td>Out-of-sample Sharpe ratio</td><td class="num">≈ 1.27 (annualised)</td></tr>
+      <tr><td>Profit factor / trades</td><td class="num">2.50 / 21</td></tr>
+      <tr><td>Lookahead-bias audit</td><td>Passed; Sharpe held flat on unseen forward data</td></tr>
+    </table>
+    <p class="disclaimer">*Historical simulation results. They describe what the system did, not
+    what you will get. Roughly two signals a month — deliberately selective.</p>
+    <div class="price">$199 <small>one-off · indicator + strategy versions · setup guide · methodology note · free updates · 14-day refund</small></div>
+    <a class="btn" href="#buy">Get Fortuna Coil</a>
+  </div>
 
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  var u = document.getElementById('username').value;
-  var p = document.getElementById('password').value;
-  
-  if (u === 'Fortuna' && p === 'Secret1') {
-    sessionStorage.setItem('fortuna_auth', 'true');
-    window.location.href = 'dashboard.html';
-  } else {
-    document.getElementById('errorMsg').classList.add('show');
-    setTimeout(function() {
-      document.getElementById('errorMsg').classList.remove('show');
-    }, 3000);
-  }
-});
-</script>
+  <div class="card">
+    <h3>Fortuna Coil EA — MetaTrader 5 Expert Advisor</h3>
+    <p>The same coil-breakout logic as a fully automated MT5 Expert Advisor with risk-based
+    position sizing, ATR trailing stop, and time stop. Ships with the source file and a tester
+    setup guide. Note honestly stated up front: the historical evidence above comes from crypto
+    perpetual futures; MT5 symbols use tick volume and the effect there is unvalidated until you
+    test it on your own broker's data.</p>
+    <div class="price">$349 <small>one-off · .mq5 source included · works with any symbol/timeframe · 14-day refund</small></div>
+    <a class="btn" href="#buy">Get the EA</a>
+  </div>
+</section>
+
+<section class="wrap" id="buy">
+  <h2>Buy</h2>
+  <p>Checkout via Gumroad/Stripe — instant download of the Pine scripts (paste into TradingView)
+  or the .mq5 file (drop into MQL5/Experts). Setup takes five minutes and the guide walks
+  through it.</p>
+  <ul>
+    <li>14-day money-back guarantee, no questions asked</li>
+    <li>Source code visible — nothing hidden, nothing obfuscated</li>
+  </ul>
+</section>
+
+<section class="wrap">
+  <h2>The fine print (read it)</h2>
+  <p class="disclaimer">
+  Fortuna Labs Pty-style disclaimer — general information only. Everything sold on this site is
+  software and educational material. Nothing here is financial product advice, a recommendation,
+  or an offer to trade. We don't know your objectives, situation, or needs, and no product here
+  takes them into account. Trading involves substantial risk of loss; leveraged and crypto-derivative
+  trading can lose more than your deposit. All performance figures on this page are historical
+  simulations with stated assumptions (period, instrument, cost model) and include known caveats;
+  past performance is not a reliable indicator of future performance. Fortuna Labs is not licensed
+  to provide financial advice under Australian law. If you need advice, see a licensed adviser.</p>
+</section>
+
+<footer class="wrap">
+  © 2026 Fortuna Labs · fortunalabs.net · contact: hello@fortunalabs.net
+</footer>
+
 </body>
 </html>
