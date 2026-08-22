@@ -1,0 +1,76 @@
+//@version=5
+// Fortuna Coil — volume-confirmed low-volatility coil breakout (STRATEGY).
+// Same logic as the Fortuna Coil indicator; this version runs in TradingView's
+// Strategy Tester. See the indicator file for provenance, reference backtest,
+// and disclaimers. Not financial advice.
+
+strategy("Fortuna Coil [Fortuna Labs]", overlay = true,
+     initial_capital = 25000,
+     default_qty_type = strategy.percent_of_equity,
+     default_qty_value = 95,
+     commission_type = strategy.commission.percent,
+     commission_value = 0.06,          // ~10bp taker + 2bp slip per SIDE
+     slippage = 0,
+     calc_on_every_tick = false,
+     process_orders_on_close = true)
+
+grpS = "Signal"
+rangeLb   = input.int(40,    "Range lookback",             minval = 5,    group = grpS)
+volAvgLb  = input.int(20,    "Volume average lookback",    minval = 5,    group = grpS)
+surgeMult = input.float(2.0, "Volume surge multiple",      minval = 1.1,  step = 0.1, group = grpS)
+bucketMax = input.float(0.4, "Low-vol percentile max",     minval = 0.05, maxval = 0.9, step = 0.05, group = grpS)
+atrLb     = input.int(14,    "ATR lookback",               minval = 3,    group = grpS)
+rvolWin   = input.int(252,   "Regime percentile window",   minval = 60,   group = grpS)
+
+grpX = "Exits"
+trailMult   = input.float(3.0, "ATR trail multiple", minval = 0.5, step = 0.25, group = grpX)
+maxHoldBars = input.int(10,    "Max holding bars",   minval = 1,   group = grpX)
+
+grpD = "Direction"
+allowLong  = input.bool(true, "Long setups",  group = grpD)
+allowShort = input.bool(true, "Short setups", group = grpD)
+
+// ------------------------------------------------------------- computation
+priorHigh = ta.highest(high, rangeLb)[1]
+priorLow  = ta.lowest(low, rangeLb)[1]
+breakUp   = close > priorHigh
+breakDown = close < priorLow
+
+volAvg   = ta.sma(volume, volAvgLb)[1]
+volRatio = volAvg > 0 ? volume / volAvg : na
+volSurge = not na(volRatio) and volRatio >= surgeMult
+
+atrVal       = ta.atr(atrLb)
+rvol         = close > 0 ? atrVal / close : na
+volPctile    = ta.percentrank(rvol[1], rvolWin) / 100.0
+lowVolRegime = not na(volPctile) and volPctile <= bucketMax
+
+coilReady  = lowVolRegime[1]
+longSetup  = allowLong  and coilReady and volSurge and breakUp and barstate.isconfirmed
+shortSetup = allowShort and coilReady and volSurge and breakDown and barstate.isconfirmed
+
+trailDist = trailMult * atrVal
+
+// ---------------------------------------------------------------- orders
+if strategy.position_size > 0
+    // ATR trail from best close since entry
+    var float peak = na
+    peak := math.max(nz(peak, close), close)
+    if close <= peak - trailDist or bar_index - strategy.opentrades.entry_bar_index(strategy.opentrades - 1) >= maxHoldBars
+        strategy.close("L", comment = peak - close <= trailDist ? "trail" : "time")
+        peak := na
+
+if strategy.position_size < 0
+    var float trough = na
+    trough := math.min(nz(trough, close), close)
+    if close >= trough + trailDist or bar_index - strategy.opentrades.entry_bar_index(strategy.opentrades - 1) >= maxHoldBars
+        strategy.close("S", comment = "exit")
+        trough := na
+
+if strategy.position_size == 0 and longSetup
+    strategy.entry("L", strategy.long, stop = close - trailDist)   // protective stop level recorded
+if strategy.position_size == 0 and shortSetup
+    strategy.entry("S", strategy.short, stop = close + trailDist)
+
+plotshape(longSetup  and strategy.position_size == 0, title = "Coil long",  style = shape.triangleup,   location = location.belowbar, color = color.new(color.green, 0), size = size.small, text = "COIL")
+plotshape(shortSetup and strategy.position_size == 0, title = "Coil short", style = shape.triangledown, location = location.abovebar, color = color.new(color.red, 0),   size = size.small, text = "COIL")
