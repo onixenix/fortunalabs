@@ -1,0 +1,114 @@
+//@version=5
+// Fortuna Coil — volume-confirmed low-volatility coil breakout (INDICATOR).
+//
+// Faithful Pine v5 port of the Fortuna "coil-volume-breakout" strategy
+// (idea-s6qtcghc46) — the sole strategy to survive Fortuna's honest
+// out-of-sample gauntlet. Reference backtest: Binance USDT-M perpetuals,
+// 10 largest alts, 1d bars, OOS 2025-06..2026-05 extended to 2026-07-08,
+// costs modelled at 10bp taker + 2bp slippage per side, daily mark-to-market:
+//   OOS Sharpe ~1.27 (annualised), profit factor 2.50, 21 trades,
+//   lookahead audit passed; Sharpe held flat through an unseen forward window.
+// Past performance does not imply future results. Not financial advice.
+//
+// Logic is parameter-for-parameter identical to the Python original:
+//   Range  : prior_high/low = highest/lowest high/low of last N bars,
+//            shifted one bar (causal). Break = close beyond a band.
+//   Volume : vol_avg = SMA(volume, M) shifted one bar; surge when
+//            volume / vol_avg >= surge_mult.
+//   Regime : rvol = ATR / close; percentile rank of rvol[1] within its own
+//            trailing window; coil = rank <= bucket_max.
+//   Entry  : only while flat, on coil + break + volume surge.
+//   Exit   : ATR trail from best close since entry + max-holding-bars stop.
+
+indicator("Fortuna Coil [Fortuna Labs]", overlay = true)
+
+// ------------------------------------------------------------------ inputs
+grpS = "Signal"
+rangeLb   = input.int(40,    "Range lookback",             minval = 5,    group = grpS)
+volAvgLb  = input.int(20,    "Volume average lookback",    minval = 5,    group = grpS)
+surgeMult = input.float(2.0, "Volume surge multiple",      minval = 1.1,  step = 0.1, group = grpS)
+bucketMax = input.float(0.4, "Low-vol percentile max",     minval = 0.05, maxval = 0.9, step = 0.05, group = grpS)
+atrLb     = input.int(14,    "ATR lookback",               minval = 3,    group = grpS)
+rvolWin   = input.int(252,   "Regime percentile window",   minval = 60,   group = grpS)
+
+grpX = "Exits"
+trailMult   = input.float(3.0, "ATR trail multiple", minval = 0.5, step = 0.25, group = grpX)
+maxHoldBars = input.int(10,    "Max holding bars",   minval = 1,   group = grpX)
+
+grpV = "Visuals"
+showBands    = input.bool(true,  "Show range bands",                   group = grpV)
+shadeRegime  = input.bool(true,  "Shade coil regime",                  group = grpV)
+showRejected = input.bool(false, "Mark unconfirmed breaks (fakeouts)", group = grpV)
+
+// ------------------------------------------------------------- computation
+priorHigh = ta.highest(high, rangeLb)[1]
+priorLow  = ta.lowest(low, rangeLb)[1]
+breakUp   = close > priorHigh
+breakDown = close < priorLow
+
+volAvg   = ta.sma(volume, volAvgLb)[1]
+volRatio = volAvg > 0 ? volume / volAvg : na
+volSurge = not na(volRatio) and volRatio >= surgeMult
+
+atrVal      = ta.atr(atrLb)                       // Wilder RMA, same family as Python TR mean
+rvol        = close > 0 ? atrVal / close : na
+volPctile   = ta.percentrank(rvol[1], rvolWin) / 100.0
+lowVolRegime = not na(volPctile) and volPctile <= bucketMax
+
+coilReady  = lowVolRegime[1]                       // regime measured on the coil bar
+longSetup  = coilReady and volSurge and breakUp and barstate.isconfirmed
+shortSetup = coilReady and volSurge and breakDown and barstate.isconfirmed
+
+// ------------------------------------------------------------ state machine
+var bool  inLong   = false
+var bool  inShort  = false
+var float peak     = na
+var float trough   = na
+var int   barsHeld = 0
+
+trailDist = trailMult * atrVal
+
+// Exits are evaluated before new entries so a fresh signal can't fire inside
+// an existing position (matches the Python decide() ordering).
+exitLongNow  = inLong  and (close <= peak - trailDist or barsHeld >= maxHoldBars)
+exitShortNow = inShort and (close >= trough + trailDist or barsHeld >= maxHoldBars)
+
+if exitLongNow
+    inLong  := false
+    peak    := na
+if exitShortNow
+    inShort := false
+    trough  := na
+
+enteredLong  = not inLong and not inShort and longSetup
+enteredShort = not inLong and not inShort and shortSetup
+if enteredLong
+    inLong := true
+    peak   := close
+    barsHeld := 0
+if enteredShort
+    inShort  := true
+    trough   := close
+    barsHeld := 0
+
+barsHeld := (inLong or inShort) ? barsHeld + 1 : 0
+
+// ---------------------------------------------------------------- visuals
+pHi = plot(showBands ? priorHigh : na, "Prior range high", color = color.new(color.teal, 45))
+pLo = plot(showBands ? priorLow  : na, "Prior range low",  color = color.new(color.teal, 45))
+fill(pHi, pLo, color = shadeRegime and lowVolRegime ? color.new(color.orange, 85) : na, title = "Coil zone")
+
+plotshape(enteredLong,  title = "Coil breakout long",  style = shape.triangleup,   location = location.belowbar, color = color.new(color.green, 0), size = size.small, text = "COIL")
+plotshape(enteredShort, title = "Coil breakout short", style = shape.triangledown, location = location.abovebar, color = color.new(color.red, 0),   size = size.small, text = "COIL")
+
+fakeUp = showRejected and coilReady and not volSurge and breakUp and barstate.isconfirmed
+fakeDn = showRejected and coilReady and not volSurge and breakDown and barstate.isconfirmed
+plotshape(fakeUp, title = "Break without volume (rejected)", style = shape.xcross, location = location.belowbar, color = color.new(color.gray, 30), size = size.tiny)
+plotshape(fakeDn, title = "Break without volume (rejected)", style = shape.xcross, location = location.abovebar, color = color.new(color.gray, 30), size = size.tiny)
+
+bgcolor(shadeRegime and lowVolRegime ? color.new(color.blue, 94) : na, title = "Low-vol background")
+
+// ---------------------------------------------------------------- alerts
+alertcondition(longSetup  and not inLong[1],  "Fortuna Coil LONG",  "Fortuna Coil LONG: volume-confirmed breakout UP — {{ticker}} {{interval}} close={{close}}")
+alertcondition(shortSetup and not inShort[1], "Fortuna Coil SHORT", "Fortuna Coil SHORT: volume-confirmed breakout DOWN — {{ticker}} {{interval}} close={{close}}")
+alertcondition(fakeUp or fakeDn,              "Fortuna Coil unconfirmed break", "Fortuna Coil: level break WITHOUT volume confirmation — {{ticker}} {{interval}} close={{close}}")
